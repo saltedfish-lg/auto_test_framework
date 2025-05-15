@@ -4,6 +4,7 @@ import com.baidu.web.base.BaseWebTest;
 import com.baidu.web.steps.BaiduSearchSteps;
 import io.qameta.allure.Description;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
@@ -13,8 +14,10 @@ public class BaiduSearchTest extends BaseWebTest {
 
     @BeforeClass
     @Override
-    public void setup() {
-        super.setup();  // 调用父类进行 WebDriver 初始化
+    @Parameters({"browser", "useGrid"})
+    public void setup(@Optional("chrome") String browser,
+                      @Optional("true") String useGrid) {
+        super.setup(browser, useGrid);  // 调用父类进行 WebDriver 初始化
         searchSteps = new BaiduSearchSteps(driver);
     }
 
