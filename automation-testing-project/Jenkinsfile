@@ -10,13 +10,13 @@ pipeline {
     stages {
 
         // 1️⃣ 拉取代码阶段
-//         stage('Checkout') {
-//             steps {
-//                 echo "📦 拉取源码"
-//                 // 修改为你项目实际的 Git 仓库地址和分支
-//                 git url: 'https://your-repo-url.git', branch: 'main'
-//             }
-//         }
+        stage('Checkout') {
+            steps {
+                echo "📦 拉取源码"
+                // 修改为你项目实际的 Git 仓库地址和分支
+                git url: 'https://github.com/saltedfish-lg/auto_test_framework.git', branch: 'main'
+            }
+        }
 
         // 2️⃣ 编译 + 测试阶段
         stage('Build & Test') {
