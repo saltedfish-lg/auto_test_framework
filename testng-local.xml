@@ -1,0 +1,13 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+<suite name="BaiduLocalDebugSuite" parallel="false">
+
+    <test name="Baidu Search - Local Chrome">
+        <parameter name="searchTerm" value="Selenium Local"/>
+        <parameter name="grid.enabled" value="false"/>
+        <parameter name="grid.browser" value="chrome"/>
+        <classes>
+            <class name="com.baidu.web.tests.BaiduSearchTest"/>
+        </classes>
+    </test>
+
+</suite>
