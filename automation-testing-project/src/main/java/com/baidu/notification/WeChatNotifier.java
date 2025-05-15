@@ -1,46 +1,57 @@
 package com.baidu.notification;
 
-import com.baidu.utils.LoggerUtils;
+import com.baidu.utils.HttpUtils;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import org.slf4j.Logger;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * 企业微信通知实现
+ * 企业微信通知发送器（Webhook 模式）
  */
 public class WeChatNotifier implements Notifier {
-    private static final Logger logger = LoggerUtils.getLogger(WeChatNotifier.class);
-    private final String webhookUrl;
 
-    public WeChatNotifier(String webhookUrl) {
-        this.webhookUrl = webhookUrl;
+    private final String token;
+
+    public WeChatNotifier(String token) {
+        this.token = token;
     }
 
     @Override
-    public void send(String title, String content, String reportUrl) {
+    public void send(NotifyMessage message) {
         try {
-            URL url = new URL(webhookUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            conn.setDoOutput(true);
+            String url = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" + token;
 
-            String message = "{"
-                    + "\"msgtype\": \"markdown\","
-                    + "\"markdown\": {"
-                    + "\"content\": \"" + title + "\\n" + content + "\\n[查看测试报告](" + reportUrl + ")\""
+            // 构造被 @人列表
+            List<String> atUsers = message.getAtUsers();
+
+            String mentionedListJson = "";
+            if (atUsers != null && !atUsers.isEmpty()) {
+                mentionedListJson = ", \"mentioned_list\": ["
+                        + atUsers.stream()
+                        .map(u -> "\"" + u + "\"")
+                        .collect(Collectors.joining(","))
+                        + "]";
+            }
+
+            // 构造 JSON 消息体（仅 text 支持）
+            String json = "{"
+                    + "\"msgtype\": \"text\","
+                    + "\"text\": {"
+                    + "\"content\": \"" + escapeJson(message.getContent()) + "\""
+                    + mentionedListJson
                     + "}"
                     + "}";
 
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(message.getBytes("utf-8"));
-            }
+            System.out.println("📨 发送企业微信通知: " + json);
+            HttpUtils.postJson(url, json);
 
-            logger.info("企业微信通知发送成功");
         } catch (Exception e) {
-            logger.error("企业微信通知发送失败", e);
+            System.err.println("❌ 发送企业微信通知失败: " + e.getMessage());
+            e.printStackTrace();
         }
+    }
+
+    private String escapeJson(String input) {
+        return input.replace("\"", "\\\"").replace("\n", "\\n");
     }
 }

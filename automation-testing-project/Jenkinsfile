@@ -63,7 +63,7 @@ pipeline {
         此邮件由 Jenkins 自动生成。
         """,
                     mimeType: 'text/html',
-                    to: 'a_saltedfish@163.com',
+                    to: '1325707506@qq.com',
                     attachmentsPattern: 'target/screenshots/*.png'
                 )
             }

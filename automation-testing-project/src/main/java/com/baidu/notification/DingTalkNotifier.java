@@ -1,47 +1,54 @@
 package com.baidu.notification;
 
-import com.baidu.utils.LoggerUtils;
+import com.baidu.utils.HttpUtils;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import org.slf4j.Logger;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * 钉钉通知实现
+ * 钉钉通知发送器（支持纯文本，支持 @多个用户）
  */
 public class DingTalkNotifier implements Notifier {
-    private static final Logger logger = LoggerUtils.getLogger(DingTalkNotifier.class);
-    private final String webhookUrl;
 
-    public DingTalkNotifier(String webhookUrl) {
-        this.webhookUrl = webhookUrl;
+    private final String token;
+
+    public DingTalkNotifier(String token) {
+        this.token = token;
     }
 
     @Override
-    public void send(String title, String content, String reportUrl) {
+    public void send(NotifyMessage message) {
         try {
-            URL url = new URL(webhookUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            conn.setDoOutput(true);
+            String url = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" + token;
 
-            String message = "{"
-                    + "\"msgtype\": \"markdown\","
-                    + "\"markdown\": {"
-                    + "\"title\":\"" + title + "\","
-                    + "\"text\":\"#### " + title + " \\n " + content + " \\n [测试报告点击查看](" + reportUrl + ")\""
+            // 构建 @列表
+            List<String> atMobiles = message.getAtUsers();
+            boolean isAtAll = atMobiles != null && atMobiles.contains("@all");
+
+            // 构造 JSON 消息体
+            String json = "{"
+                    + "\"msgtype\": \"text\","
+                    + "\"text\": {"
+                    + "\"content\": \"" + escapeJson(message.getContent()) + "\""
+                    + "},"
+                    + "\"at\": {"
+                    + "\"atMobiles\": [" + atMobiles.stream()
+                    .map(m -> "\"" + m + "\"")
+                    .collect(Collectors.joining(",")) + "],"
+                    + "\"isAtAll\": " + isAtAll
                     + "}"
                     + "}";
 
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(message.getBytes("utf-8"));
-            }
+            System.out.println("📨 发送企业微信通知: " + json);
+            HttpUtils.postJson(url, json);
 
-            logger.info("钉钉通知发送成功");
         } catch (Exception e) {
-            logger.error("钉钉通知发送失败", e);
+            System.err.println("❌ 发送企业微信通知失败: " + e.getMessage());
+            e.printStackTrace();
         }
+    }
+
+    private String escapeJson(String input) {
+        return input.replace("\"", "\\\"").replace("\n", "\\n");
     }
 }
