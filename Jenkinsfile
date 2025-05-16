@@ -90,10 +90,21 @@ pipeline {
     }
 
     stage('Notify WeChat / DingTalk') {
+        when {
+            expression { return currentBuild.currentResult != 'ABORTED' }
+        }
       steps {
         echo '📲 调用 Java 通知主程序'
         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-          bat "${env.NOTIFY_CMD}"
+        // 确保主程序已编译
+            bat 'mvn compile -Dfile.encoding=UTF-8'
+//           bat "${env.NOTIFY_CMD}"
+          bat '''
+                      java -cp "target/classes" ^
+                      -Dbuild.status=${currentBuild.currentResult} ^
+                      -Dreport.allure.link=http://your-allure-server/report-${BUILD_NUMBER} ^
+                      com.baidu.notification.SendNotificationMain
+                    '''
         }
       }
     }
