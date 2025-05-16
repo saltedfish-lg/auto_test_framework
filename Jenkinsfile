@@ -49,6 +49,7 @@ pipeline {
           def statusIcon = currentBuild.currentResult == 'SUCCESS'
               ? '✅ <span style="color:green;">成功</span>'
               : '❌ <span style="color:red;">失败</span>'
+
           emailext(
             subject: "🔔 自动化测试报告 - 构建 #${env.BUILD_NUMBER} [${currentBuild.currentResult}]",
             mimeType: 'text/html',
@@ -88,6 +89,15 @@ pipeline {
       }
     }
 
+    stage('Notify WeChat / DingTalk') {
+      steps {
+        echo '📲 调用 Java 通知主程序'
+        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+          bat "${env.NOTIFY_CMD}"
+        }
+      }
+    }
+  }
 
   post {
     always {
