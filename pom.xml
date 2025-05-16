@@ -18,11 +18,11 @@
     </properties>
 
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>org.seleniumhq.selenium</groupId>-->
-<!--            <artifactId>selenium-devtools-v136</artifactId>-->
-<!--            <version>4.32.0</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.seleniumhq.selenium</groupId>-->
+        <!--            <artifactId>selenium-devtools-v136</artifactId>-->
+        <!--            <version>4.32.0</version>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -100,8 +100,14 @@
     </dependencies>
 
     <build>
-        <plugins>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
 
+        <plugins>
             <!-- Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
