@@ -95,16 +95,18 @@ pipeline {
         }
       steps {
         echo '📲 调用 Java 通知主程序'
+        echo "🔍 当前状态：${currentBuild.currentResult}"
+        echo "🔍 报告地址：http://your-allure-server/report-${BUILD_NUMBER}"
         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
         // 确保主程序已编译
             bat 'mvn compile -Dfile.encoding=UTF-8'
 //           bat "${env.NOTIFY_CMD}"
-          bat '''
+          bat """
                       java -cp "target/classes" ^
                       -Dbuild.status=${currentBuild.currentResult} ^
                       -Dreport.allure.link=http://your-allure-server/report-${BUILD_NUMBER} ^
                       com.baidu.notification.SendNotificationMain
-                    '''
+                    """
         }
       }
     }
