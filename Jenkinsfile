@@ -25,7 +25,7 @@ pipeline {
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
           bat '''
             chcp 65001 > nul
-            mvn clean test -Dfile.encoding=UTF-8
+            mvn clean test -DsuiteXmlFile=testng.xml -Dfile.encoding=UTF-8
           '''
         }
       }

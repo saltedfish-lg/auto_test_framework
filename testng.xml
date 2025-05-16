@@ -3,7 +3,7 @@
 
     <!-- Chrome 浏览器测试 -->
     <test name="Baidu Search on Chrome">
-        <parameter name="searchTerm" value="Selenium WebDriver"/>
+        <parameter name="searchTerm" value="Selenium自动化测试"/>
         <parameter name="grid.browser" value="chrome"/>
         <classes>
             <class name="com.baidu.web.tests.BaiduSearchTest"/>
