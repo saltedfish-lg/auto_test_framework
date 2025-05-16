@@ -96,22 +96,18 @@ stage('Notify WeChat / DingTalk') {
   steps {
     echo '📲 调用 Java 通知主程序'
     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-      // 确保主程序已编译
+      // ✅ 编译主类
       bat 'mvn compile -Dfile.encoding=UTF-8'
 
-      // 检查 .class 是否存在（可选辅助）
+      // ✅ 检查类是否存在
       bat 'dir target\\classes\\com\\baidu\\notification'
 
-      // 执行 Java 通知程序
-      bat '''
-        java -cp "target/classes" ^
-        -Dbuild.status=${currentBuild.currentResult} ^
-        -Dreport.allure.link=http://your-allure-server/report-${BUILD_NUMBER} ^
-        com.baidu.notification.SendNotificationMain
-      '''
+      // ✅ 执行通知程序（推荐方式）
+      bat "java -cp target/classes -Dbuild.status=${currentBuild.currentResult} -Dreport.allure.link=http://your-allure-server/report-${BUILD_NUMBER} com.baidu.notification.SendNotificationMain"
     }
   }
 }
+
 
   post {
     always {
