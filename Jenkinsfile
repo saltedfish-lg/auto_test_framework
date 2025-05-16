@@ -23,10 +23,14 @@ pipeline {
       steps {
         echo '🔧 编译项目并运行 Web 自动化测试'
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-          bat 'mvn clean test'
+          bat '''
+            chcp 65001 > nul
+            mvn clean test -Dfile.encoding=UTF-8
+          '''
         }
       }
     }
+
 
     stage('Generate Allure Report') {
       steps {
