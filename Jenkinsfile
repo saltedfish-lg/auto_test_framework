@@ -1,70 +1,108 @@
 pipeline {
-    agent any
+  agent any
 
-    environment {
-        MAVEN_HOME = tool 'maven3.9.9'
-        PATH = "${MAVEN_HOME}/bin:${env.PATH}"
-        NOTIFY_CMD = 'java -cp target/classes com.baidu.notification.SendNotificationMain'
+  tools {
+    maven 'Maven3.9.9'
+    jdk 'JDK17'
+  }
+
+  environment {
+    RECIPIENTS = '1325707506@qq.com'
+    NOTIFY_CMD = 'java -cp target\\classes com.baidu.notification.SendNotificationMain'
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
     }
 
-    options {
-        skipStagesAfterUnstable()
-        ansiColor('xterm')
-        buildDiscarder(logRotator(numToKeepStr: '10'))
+    stage('Build & Test') {
+      steps {
+        echo '🔧 编译项目并运行 Web 自动化测试'
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+          bat '''
+            chcp 65001 > nul
+            mvn clean test -DsuiteXmlFile=testng.xml
+          '''
+        }
+      }
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                echo '📥 拉取项目代码'
-                checkout scm
-            }
-        }
 
-        stage('Build & Test') {
-            steps {
-                echo '🔧 编译项目并运行 Web 自动化测试'
-                bat 'mvn clean test -DsuiteXmlFile=testng.xml -Dfile.encoding=UTF-8'
-            }
-        }
-
-        stage('Generate Allure Report') {
-            steps {
-                echo '📊 生成 Allure 报告'
-                allure includeProperties: false, jdk: '', results: [[path: 'target/allure-results']]
-            }
-        }
-
-        stage('Archive Artifacts') {
-            steps {
-                echo '🧳 归档失败截图和报告数据'
-                archiveArtifacts artifacts: 'target/screenshots/*.png', allowEmptyArchive: true
-                archiveArtifacts artifacts: 'target/allure-results/**', allowEmptyArchive: true
-            }
-        }
-
-        stage('Notify WeChat / DingTalk') {
-            when {
-                expression { return currentBuild.currentResult != 'ABORTED' }
-            }
-            steps {
-                echo '📲 调用 Java 通知主程序'
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    bat 'mvn compile -Dfile.encoding=UTF-8'
-                    bat "dir target\\classes\\com\\baidu\\notification"
-                    bat "java -cp target/classes -Dbuild.status=${currentBuild.currentResult} -Dreport.allure.link=http://your-server/allure-report com.baidu.notification.SendNotificationMain"
-                }
-            }
-        }
+    stage('Generate Allure Report') {
+      steps {
+        echo '📊 生成 Allure 报告'
+        allure([
+          results: [[path: 'target/allure-results']],
+          reportBuildPolicy: 'ALWAYS'
+        ])
+      }
     }
 
-    post {
-        always {
-            echo '🧹 构建后操作：归档测试结果'
-            junit 'target/surefire-reports/*.xml'
+    stage('Send Email') {
+      steps {
+        echo '📩 发送 HTML 格式邮件，嵌入状态图标和失败截图'
+        script {
+          def statusIcon = currentBuild.currentResult == 'SUCCESS'
+              ? '✅ <span style="color:green;">成功</span>'
+              : '❌ <span style="color:red;">失败</span>'
+          emailext(
+            subject: "🔔 自动化测试报告 - 构建 #${env.BUILD_NUMBER} [${currentBuild.currentResult}]",
+            mimeType: 'text/html',
+            to: "${env.RECIPIENTS}",
+            attachmentsPattern: 'target/screenshots/*.png',
+            attachLog: true,
+            body: """
+              <html>
+              <body style="font-family:Arial;">
+                <h2 style="color:#333;">🔔 自动化测试结果通知</h2>
+                <p><b>构建状态：</b>${statusIcon}</p>
+                <p><b>项目：</b>${env.JOB_NAME}</p>
+                <p><b>构建编号：</b>#${env.BUILD_NUMBER}</p>
+                <p><b>构建时间：</b>${new Date().format("yyyy-MM-dd HH:mm:ss")}</p>
+
+                <p><b>📊 Allure 报告：</b>
+                  <a href="${env.BUILD_URL}allure">点击查看报告</a>
+                </p>
+
+                <p><b>🔍 控制台输出：</b>
+                  <a href="${env.BUILD_URL}console">点击查看日志</a>
+                </p>
+
+                <hr/>
+                <h3>📸 截图预览：</h3>
+                <p><i>下图为自动捕获的失败截图（如果有）</i></p>
+                <img src="cid:error-01.png" width="400" style="border:1px solid #ccc;margin:5px;" />
+                <img src="cid:error-02.png" width="400" style="border:1px solid #ccc;margin:5px;" />
+
+                <br/><br/>
+                <p style="font-size:12px;color:gray;">-- Jenkins 自动通知</p>
+              </body>
+              </html>
+            """
+          )
         }
-        failure {
-            echo '❌ 构建失败'
-        }
+      }
     }
+
+
+  post {
+    always {
+      echo '🧹 构建后操作：归档测试结果'
+
+      junit allowEmptyResults: true, testResults: 'target/surefire-reports/testng-results.xml'
+      archiveArtifacts artifacts: 'target/screenshots/*.png', allowEmptyArchive: true
+    }
+
+    failure {
+      echo '❌ 构建失败'
+    }
+
+    success {
+      echo '✅ 构建成功'
+    }
+  }
 }
