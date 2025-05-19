@@ -123,7 +123,9 @@ pipeline {
     always {
       echo "🧹 构建后操作：使用 Allure 报告展示"
       echo "✔️ 构建结束 ➤ Allure 报告地址：http://localhost:8080/job/autoTest/allure/"
-      archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: false
+      catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+        archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
+      }
     }
 
     success {
@@ -134,8 +136,8 @@ pipeline {
       echo "❌ 构建失败，请检查日志"
     }
 
-    unstable {
-      echo "⚠️ 构建不稳定（已避免归档测试文件失败导致）"
-    }
+//     unstable {
+//       echo "⚠️ 构建不稳定（已避免归档测试文件失败导致）"
+//     }
   }
 }
