@@ -28,6 +28,6 @@ public class BaiduSearchTest extends BaseWebTest {
         searchSteps.openHomePage();
         searchSteps.enterSearchTerm(searchTerm);
         searchSteps.clickSearch();
-        searchSteps.assertResults("123456789");
+        searchSteps.assertResults(searchTerm);
     }
 }
