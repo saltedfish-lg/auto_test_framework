@@ -117,7 +117,11 @@ pipeline {
       echo "🧹 构建后操作：使用 Allure 报告展示"
       echo "✔️ 构建结束 ➤ Allure 报告地址：http://localhost:8080/job/autoTest/allure/"
       archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: false
-      archiveArtifacts artifacts: 'target/screenshots/*.png', allowEmptyArchive: true
+      // ✅ 关键修复：避免截图归档失败导致 UNSTABLE
+      script {
+        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+          archiveArtifacts artifacts: 'target/screenshots/*.png', allowEmptyArchive: true
+        }
     }
 
     success {
