@@ -92,26 +92,26 @@ pipeline {
       }
     }
 
-    stage('Notify WeChat / DingTalk') {
-      when {
-        expression { return currentBuild.currentResult != 'ABORTED' }
-      }
-      steps {
-        echo '📲 调用 Java 通知主程序'
-        echo "🔍 当前状态：${currentBuild.currentResult}"
-        echo "🔍 报告地址：http://192.168.0.21:8080/job/autoTest/allure/"
-        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-          bat 'mvn compile -Dfile.encoding=UTF-8'
-          bat """
-            java -cp "target/classes" ^
-            -Dbuild.status=${currentBuild.currentResult} ^
-            -Dreport.allure.link=http://192.168.0.21:8080/job/autoTest/allure/ ^
-            com.baidu.notification.SendNotificationMain
-          """
-        }
-      }
-    }
-  }
+//     stage('Notify WeChat / DingTalk') {
+//       when {
+//         expression { return currentBuild.currentResult != 'ABORTED' }
+//       }
+//       steps {
+//         echo '📲 调用 Java 通知主程序'
+//         echo "🔍 当前状态：${currentBuild.currentResult}"
+//         echo "🔍 报告地址：http://192.168.0.21:8080/job/autoTest/allure/"
+//         catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+//           bat 'mvn compile -Dfile.encoding=UTF-8'
+//           bat """
+//             java -cp "target/classes" ^
+//             -Dbuild.status=${currentBuild.currentResult} ^
+//             -Dreport.allure.link=http://192.168.0.21:8080/job/autoTest/allure/ ^
+//             com.baidu.notification.SendNotificationMain
+//           """
+//         }
+//       }
+//     }
+//   }
 
   post {
     always {
