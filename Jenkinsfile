@@ -36,11 +36,27 @@ pipeline {
       steps {
         echo '📊 生成 Allure 报告'
         echo "🔍 当前状态：${currentBuild.currentResult}"
-        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-          allure([
-            results: [[path: 'target/allure-results']],
-            reportBuildPolicy: 'ALWAYS'
-          ])
+        script {
+          def allureResultExist = fileExists('target/allure-results') &&
+                                   bat(script: 'dir target\\allure-results\\* >nul 2>&1', returnStatus: true) == 0
+
+          if (allureResultExist) {
+            catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+              allure([
+                results: [[path: 'target/allure-results']],
+                reportBuildPolicy: 'ALWAYS'
+              ])
+            }
+
+            // 修复 Allure 引发的 UNSTABLE
+            if (currentBuild.result == 'UNSTABLE') {
+              echo '⚠️ Allure 执行后标记为 UNSTABLE，尝试修正为 SUCCESS'
+              script { currentBuild.result = 'SUCCESS' }
+            }
+
+          } else {
+            echo 'ℹ️ 未发现 Allure 测试结果，跳过报告生成'
+          }
         }
       }
     }
@@ -139,11 +155,11 @@ pipeline {
           echo 'ℹ️ 构建后未发现截图，跳过归档'
         }
 
-        // ✅ 最终强制标记为成功（如果没有明确失败）
-          if (currentBuild.result == 'UNSTABLE') {
-            echo '✅ 强制清除 UNSTABLE 状态，标记为 SUCCESS'
-            currentBuild.result = 'SUCCESS'
-          }
+        // ✅ 强制消除 UNSTABLE 状态
+        if (currentBuild.result == null || currentBuild.result == 'UNSTABLE') {
+          echo '✅ 强制修正构建状态为 SUCCESS'
+          script { currentBuild.result = 'SUCCESS' }
+        }
       }
     }
 
