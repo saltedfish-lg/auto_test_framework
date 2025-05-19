@@ -154,12 +154,6 @@ pipeline {
         } else {
           echo 'ℹ️ 构建后未发现截图，跳过归档'
         }
-
-        // ✅ 强制消除 UNSTABLE 状态
-//         if (currentBuild.result == null || currentBuild.result == 'UNSTABLE') {
-//           echo '✅ 强制修正构建状态为 SUCCESS'
-//           script { currentBuild.result = 'SUCCESS' }
-//         }
       }
     }
 
