@@ -86,8 +86,8 @@ pipeline {
             """
           )
           // ✅ 仅当截图目录存在且非空时再归档
-            def screenshotDir = new File("target/screenshots")
-            if (screenshotDir.exists() && screenshotDir.listFiles().length > 0) {
+          def screenshotExists = bat(script: 'if exist target\\screenshots\\*.png (exit 0) else (exit 1)', returnStatus: true) == 0
+            if (screenshotExists) {
               archiveArtifacts artifacts: 'target/screenshots/*.png'
             } else {
               echo 'ℹ️ 未发现截图文件，跳过归档'
