@@ -12,7 +12,6 @@ public class SendNotificationMain {
             String title = ConfigUtils.getProperty("notify.title", "自动化测试通知");
             String token = ConfigUtils.getProperty("notify.token", "");
             String user = ConfigUtils.getProperty("notify.user", "");
-            System.out.println("token==="+token);
 
             String buildStatus = System.getProperty("build.status", "UNKNOWN");
             String reportLink = System.getProperty("report.allure.link", "");
