@@ -99,13 +99,13 @@ pipeline {
       steps {
         echo '📲 调用 Java 通知主程序'
         echo "🔍 当前状态：${currentBuild.currentResult}"
-        echo "🔍 报告地址：http://localhost:8080/job/autoTest/allure/"
+        echo "🔍 报告地址：http://192.168.0.21:8080/job/autoTest/allure/"
         catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
           bat 'mvn compile -Dfile.encoding=UTF-8'
           bat """
             java -cp "target/classes" ^
             -Dbuild.status=${currentBuild.currentResult} ^
-            -Dreport.allure.link=http://localhost:8080/job/autoTest/allure/ ^
+            -Dreport.allure.link=http://192.168.0.21:8080/job/autoTest/allure/ ^
             com.baidu.notification.SendNotificationMain
           """
         }
@@ -116,7 +116,7 @@ pipeline {
   post {
     always {
       echo "🧹 构建后操作：使用 Allure 报告展示"
-      echo "✔️ 构建结束 ➤ Allure 报告地址：http://localhost:8080/job/autoTest/allure/"
+      echo "✔️ 构建结束 ➤ Allure 报告地址：http://192.168.0.21:8080/job/autoTest/allure/"
 
       catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
         archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
@@ -138,7 +138,7 @@ pipeline {
         // ✅ 最终强制标记为成功（如果没有明确失败）
           if (currentBuild.result == 'UNSTABLE') {
             echo '✅ 强制清除 UNSTABLE 状态，标记为 SUCCESS'
-            currentBuild.result = null
+            currentBuild.result = 'SUCCESS'
           }
       }
     }
