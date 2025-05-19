@@ -104,7 +104,7 @@ pipeline {
         echo '📲 调用 Java 通知主程序'
         echo "🔍 当前状态：${currentBuild.currentResult}"
         echo "🔍 报告地址：http://localhost:8080/job/autoTest/allure/"
-        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
         // 确保主程序已编译
             bat 'mvn compile -Dfile.encoding=UTF-8'
 //           bat "${env.NOTIFY_CMD}"
