@@ -12,6 +12,7 @@ pipeline {
   }
 
   stages {
+
     stage('Checkout') {
       steps {
         checkout scm
@@ -82,6 +83,7 @@ pipeline {
 
           def screenshotExists = bat(script: 'if exist target\\screenshots\\*.png (exit 0) else (exit 1)', returnStatus: true) == 0
           if (screenshotExists) {
+            echo '📎 存在截图，归档中...'
             archiveArtifacts artifacts: 'target/screenshots/*.png'
           } else {
             echo 'ℹ️ 未发现截图文件，跳过归档'
@@ -115,17 +117,22 @@ pipeline {
     always {
       echo "🧹 构建后操作：使用 Allure 报告展示"
       echo "✔️ 构建结束 ➤ Allure 报告地址：http://localhost:8080/job/autoTest/allure/"
-      archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: false
 
+      // 归档 Allure 报告（报错不影响构建状态）
+      catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+        archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
+      }
+
+      // 归档截图（仅当存在）
       script {
         def screenshotsExist = fileExists('target/screenshots') &&
-                               bat(script: 'dir target\\screenshots\\*.png >nul 2>&1', returnStatus: true) == 0
+          bat(script: 'dir target\\screenshots\\*.png >nul 2>&1', returnStatus: true) == 0
 
         if (screenshotsExist) {
-          echo '📸 发现截图文件，准备归档'
+          echo '📸 构建后发现截图，归档中...'
           archiveArtifacts artifacts: 'target/screenshots/*.png'
         } else {
-          echo 'ℹ️ 没有找到截图，跳过归档，防止构建变为 UNSTABLE'
+          echo 'ℹ️ 构建后未发现截图，跳过归档'
         }
       }
     }
