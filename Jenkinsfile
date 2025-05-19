@@ -85,9 +85,12 @@ pipeline {
               </html>
             """
           )
-            //归档截图（如果存在）
-            catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-              archiveArtifacts artifacts: 'target/screenshots/*.png', allowEmptyArchive: true
+          // ✅ 仅当截图目录存在且非空时再归档
+            def screenshotDir = new File("target/screenshots")
+            if (screenshotDir.exists() && screenshotDir.listFiles().length > 0) {
+              archiveArtifacts artifacts: 'target/screenshots/*.png'
+            } else {
+              echo 'ℹ️ 未发现截图文件，跳过归档'
             }
         }
       }
