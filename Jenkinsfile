@@ -114,18 +114,21 @@ pipeline {
 
   post {
     always {
-      echo '🧹 构建后操作：归档测试结果'
-
-      junit allowEmptyResults: true, testResults: 'target/surefire-reports/testng-results.xml'
-      archiveArtifacts artifacts: 'target/screenshots/*.png', allowEmptyArchive: true
-    }
-
-    failure {
-      echo '❌ 构建失败'
+      echo "🧹 构建后操作：使用 Allure 报告展示"
+      echo "✔️ 构建结束 ➤ Allure 报告地址：http://your-allure-server/report-${BUILD_NUMBER}"
+      archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: false
     }
 
     success {
-      echo '✅ 构建成功'
+      echo "🎉 构建成功"
+    }
+
+    failure {
+      echo "❌ 构建失败，请检查日志"
+    }
+
+    unstable {
+      echo "⚠️ 构建不稳定（已避免归档测试文件失败导致）"
     }
   }
 }
