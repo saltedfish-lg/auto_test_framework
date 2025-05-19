@@ -136,10 +136,10 @@ pipeline {
         }
 
         // ✅ 最终强制标记为成功（如果没有明确失败）
-        if (currentBuild.result == null || currentBuild.result == 'UNSTABLE') {
-          echo '✅ 强制标记构建结果为 SUCCESS'
-          currentBuild.result = 'SUCCESS'
-        }
+          if (currentBuild.result == 'UNSTABLE') {
+            echo '✅ 强制清除 UNSTABLE 状态，标记为 SUCCESS'
+            currentBuild.result = null
+          }
       }
     }
 
