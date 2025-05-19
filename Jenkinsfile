@@ -34,10 +34,12 @@ pipeline {
     stage('Generate Allure Report') {
       steps {
         echo '📊 生成 Allure 报告'
-        allure([
-          results: [[path: 'target/allure-results']],
-          reportBuildPolicy: 'ALWAYS'
-        ])
+        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+          allure([
+            results: [[path: 'target/allure-results']],
+            reportBuildPolicy: 'ALWAYS'
+          ])
+        }
       }
     }
 
