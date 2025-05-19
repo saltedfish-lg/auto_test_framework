@@ -96,7 +96,7 @@ pipeline {
       steps {
         echo '📲 调用 Java 通知主程序'
         echo "🔍 当前状态：${currentBuild.currentResult}"
-        echo "🔍 报告地址：http://your-allure-server/report-${BUILD_NUMBER}"
+        echo "🔍 报告地址：http://localhost:8080/job/autoTest/allure/"
         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
         // 确保主程序已编译
             bat 'mvn compile -Dfile.encoding=UTF-8'
@@ -104,7 +104,7 @@ pipeline {
           bat """
                       java -cp "target/classes" ^
                       -Dbuild.status=${currentBuild.currentResult} ^
-                      -Dreport.allure.link=http://your-allure-server/report-${BUILD_NUMBER} ^
+                      -Dreport.allure.link=http://localhost:8080/job/autoTest/allure/ ^
                       com.baidu.notification.SendNotificationMain
                     """
         }
@@ -115,7 +115,7 @@ pipeline {
   post {
     always {
       echo "🧹 构建后操作：使用 Allure 报告展示"
-      echo "✔️ 构建结束 ➤ Allure 报告地址：http://your-allure-server/report-${BUILD_NUMBER}"
+      echo "✔️ 构建结束 ➤ Allure 报告地址：http://localhost:8080/job/autoTest/allure/"
       archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: false
     }
 
