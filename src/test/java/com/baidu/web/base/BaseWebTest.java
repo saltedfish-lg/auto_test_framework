@@ -11,6 +11,7 @@ import org.testng.annotations.*;
 /**
  * 通用 Web 自动化测试基类，支持 Grid 模式、fallback、截图、线程隔离等功能。
  */
+@Listeners({io.qameta.allure.testng.AllureTestNg.class})
 public class BaseWebTest {
 
     // ThreadLocal 保证 driver 实例线程安全（并发执行下不冲突）

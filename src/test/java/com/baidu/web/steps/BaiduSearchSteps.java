@@ -1,14 +1,18 @@
 package com.baidu.web.steps;
 
-import com.baidu.utils.ElementActions;
 import com.baidu.utils.AssertActions;
+import com.baidu.utils.ElementActions;
 import com.baidu.web.pages.BaiduHomePage;
 import com.baidu.web.pages.SearchResultsPage;
+import io.qameta.allure.Attachment;
 import io.qameta.allure.Step;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
 /**
  * Baidu 搜索测试步骤类（使用 ElementActions + AssertActions 工具类）
+ * 封装业务操作步骤，便于 Allure 报告生成与维护
  */
 public class BaiduSearchSteps {
 
@@ -32,13 +36,26 @@ public class BaiduSearchSteps {
         homePage.enterSearch(keyword);
     }
 
-    @Step("执行搜索提交")
+    @Step("点击搜索按钮")
     public void clickSearch() {
         homePage.submitSearch();
     }
 
     @Step("验证搜索结果包含关键词：{expected}")
     public void assertResults(String expected) {
-        AssertActions.assertTextContains(driver, resultsPage.getResultsLocator(), expected);
+        try {
+            AssertActions.assertTextContains(driver, resultsPage.getResultsLocator(), expected);
+        } catch (AssertionError | Exception e) {
+            saveScreenshotOnFailure();
+            throw e;
+        }
+    }
+
+    /**
+     * 断言失败时截图，用于 Allure 报告展示
+     */
+    @Attachment(value = "失败截图", type = "image/png")
+    public byte[] saveScreenshotOnFailure() {
+        return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
     }
 }

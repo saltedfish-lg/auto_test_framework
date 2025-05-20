@@ -124,6 +124,7 @@
                     <argLine>-Dfile.encoding=UTF-8</argLine>
                     <systemPropertyVariables>
                         <file.encoding>UTF-8</file.encoding>
+                        <allure.results.directory>target/allure-results</allure.results.directory>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
