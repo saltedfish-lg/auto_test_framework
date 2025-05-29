@@ -21,13 +21,38 @@ pipeline {
 
     stage('Build & Test') {
       steps {
-        echo '🔧 编译项目并运行 Web 自动化测试'
+        echo '🔧 编译项目并运行 Web 自动化测试 + 接口测试'
         echo "🔍 当前状态：${currentBuild.currentResult}"
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
           bat '''
             chcp 65001 > nul
             mvn clean test -DsuiteXmlFile=testng.xml
           '''
+        }
+      }
+    }
+
+    // ➕ 新增 Schema 校验日志阶段
+    stage('Schema Validation Summary') {
+      steps {
+        echo '🧪 输出 Schema 校验结果摘要'
+        script {
+          def schemaLog = 'target/schema-validation.log'
+          if (fileExists(schemaLog)) {
+            def content = readFile(schemaLog)
+            echo '📄 Schema 校验日志内容:'
+            echo content
+
+            // ➕ 添加为 Allure 附件
+            writeFile file: 'target/allure-results/schema-summary.txt', text: content
+            allure([
+              includeProperties: false,
+              results: [[path: 'target/allure-results']],
+              reportBuildPolicy: 'ALWAYS'
+            ])
+          } else {
+            echo '⚠️ 未发现 Schema 校验日志，可能未执行或无记录'
+          }
         }
       }
     }
@@ -48,12 +73,10 @@ pipeline {
               ])
             }
 
-            // 修复 Allure 引发的 UNSTABLE
             if (currentBuild.result == 'UNSTABLE') {
               echo '⚠️ Allure 执行后标记为 UNSTABLE，尝试修正为 SUCCESS'
               script { currentBuild.result = 'SUCCESS' }
             }
-
           } else {
             echo 'ℹ️ 未发现 Allure 测试结果，跳过报告生成'
           }
@@ -111,7 +134,7 @@ pipeline {
         }
       }
     }
-// http://http://localhost//192.168.0.21
+
     stage('Notify WeChat / DingTalk') {
       when {
         expression { return currentBuild.currentResult != 'ABORTED' }

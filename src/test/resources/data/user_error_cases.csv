@@ -1,0 +1,3 @@
+testName,path,authRequired,expectedStatus,expectedField,expectedValue,schemaPath
+未登录获取用户列表,/users,false,401,error,Unauthorized,/schema/users_401_schema.json
+请求无效路径,userz,true,404,error,Not Found,/schema/users_404_schema.json

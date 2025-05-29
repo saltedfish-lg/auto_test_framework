@@ -37,7 +37,6 @@ public class BaiduSearchTest extends BaseWebTest {
     @Test(description = "验证百度搜索功能")
     @Parameters("searchTerm")
     @Description("打开百度首页，搜索关键词，断言结果中包含该关键词")
-    @Story("用户在百度首页搜索内容并查看结果")
     public void testBaiduSearch(String searchTerm) {
         searchSteps.openHomePage();
         searchSteps.enterSearchTerm(searchTerm);

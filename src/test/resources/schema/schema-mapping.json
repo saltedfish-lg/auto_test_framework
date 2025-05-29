@@ -1,0 +1,11 @@
+{
+  "/users": {
+    "200": "user_list_schema.json",
+    "401": "unauthorized_schema.json"
+  },
+  "/users/{id}": {
+    "200": "user_schema.json",
+    "404": "not_found_schema.json",
+    "401": "unauthorized_schema.json"
+  }
+}
