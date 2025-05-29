@@ -134,7 +134,7 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>5.2.5</version>
+            <version>5.4.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -144,6 +144,13 @@
             <version>5.4.0</version>
             <!-- scope>test</scope> 建议去掉以便 CI 可用 -->
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.4.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

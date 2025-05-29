@@ -19,10 +19,19 @@ public class SchemaValidatorUtils {
     @Step("执行 JSON Schema 校验：{schemaFileName}")
     public static void validate(ValidatableResponse response, String schemaFileName) {
         File schemaFile = new File(SCHEMA_DIR + schemaFileName);
-        log("🔍 准备校验 Schema 文件: " + schemaFileName);
+
+        log("🔍 开始校验 Schema 文件: " + schemaFile.getName());
+        log("📁 Schema 文件路径: " + schemaFile.getAbsolutePath());
 
         if (!schemaFile.exists()) {
             String msg = "❌ 未找到 Schema 文件: " + schemaFile.getAbsolutePath();
+            log(msg);
+            Allure.addAttachment("Schema 加载失败", msg);
+            throw new AssertionError(msg);
+        }
+
+        if (schemaFile.length() == 0) {
+            String msg = "⚠️ Schema 文件为空: " + schemaFile.getAbsolutePath();
             log(msg);
             Allure.addAttachment("Schema 加载失败", msg);
             throw new AssertionError(msg);
@@ -35,30 +44,29 @@ public class SchemaValidatorUtils {
         try {
             response.body(JsonSchemaValidator.matchesJsonSchema(schemaFile));
             log("✅ 通过 Schema 校验: " + schemaFileName);
-            Allure.step("✅ 通过 Schema 校验");
         } catch (AssertionError e) {
-            log("❌ Schema 校验失败: " + e.getMessage());
+            String failMsg = "❌ Schema 校验失败: " + e.getMessage();
+            log(failMsg);
             Allure.addAttachment("Schema 校验失败", e.getMessage());
-            throw new AssertionError("❌ JSON Schema 校验失败: " + e.getMessage(), e);
+            throw new AssertionError(failMsg, e);
+        } catch (Exception ex) {
+            String errMsg = "❌ Schema 校验异常: " + ex.getMessage();
+            log(errMsg);
+            Allure.addAttachment("Schema 校验异常", errMsg);
+            throw new RuntimeException(errMsg, ex);
         }
     }
 
     @Step("执行 JSON Schema 校验（自动拼接文件名）")
     public static void validate(String apiPath, int statusCode, Response response) {
-        // e.g. "/users" + "_" + 401.json => users_401.json
-        String normalizedPath = apiPath.replaceAll("[^a-zA-Z0-9]", "_"); // 替换为安全文件名
+        // 例：/users + 401 => users_401.json
+        String normalizedPath = apiPath.replaceAll("[^a-zA-Z0-9]", "_");
         String schemaFileName = normalizedPath + "_" + statusCode + ".json";
 
-        // 转换 Response 为 ValidatableResponse
         ValidatableResponse validatable = response.then();
-
         validate(validatable, schemaFileName);
     }
 
-
-    /**
-     * 动态加载：如传入 baseName=user，status=200，则加载 user_200.json
-     */
     @Step("根据状态码校验 Schema：{baseSchemaName}_{statusCode}.json")
     public static void validateByStatusCode(ValidatableResponse response, int statusCode, String baseSchemaName) {
         String fileName = String.format("%s_%d.json", baseSchemaName, statusCode);
@@ -67,6 +75,7 @@ public class SchemaValidatorUtils {
 
     private static void log(String message) {
         logger.info(message);
+        Allure.step(message);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(SCHEMA_LOG_PATH, true))) {
             writer.write(message);
             writer.newLine();
