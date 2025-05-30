@@ -1,5 +1,7 @@
 package com.baidu.utils;
 
+import com.baidu.api.enums.AuthType;
+import com.baidu.api.model.AuthCaseData;
 import com.baidu.api.model.ErrorCaseData;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -84,4 +86,26 @@ public class ExcelUtils {
     private static String normalize(String value) {
         return value.equalsIgnoreCase("(empty)") ? "" : value;
     }
+
+    public static List<AuthCaseData> readAuthCases(String filePath) {
+        List<AuthCaseData> cases = new ArrayList<>();
+        try (FileInputStream fis = new FileInputStream(filePath);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+            Sheet sheet = workbook.getSheetAt(0);
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                AuthCaseData data = new AuthCaseData();
+                data.setPath(row.getCell(0).getStringCellValue());
+                data.setMethod(row.getCell(1).getStringCellValue());
+                data.setAuthType(AuthType.valueOf(row.getCell(2).getStringCellValue()));
+                data.setExpectedStatus((int) row.getCell(3).getNumericCellValue());
+                data.setSchemaFile(row.getCell(4).getStringCellValue());
+                cases.add(data);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("读取鉴权测试数据失败: " + e.getMessage(), e);
+        }
+        return cases;
+    }
+
 }

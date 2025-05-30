@@ -1,58 +1,74 @@
 package com.baidu.utils;
 
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
-/**
- * 通用配置读取工具类，可用于 Web / API / 通知模块
- */
 public class ConfigUtils {
-    private static final Properties properties = new Properties();
+
+    private static final Properties props = new Properties();
 
     static {
-        try (InputStream input = ConfigUtils.class.getClassLoader().getResourceAsStream("application.properties")) {
-            if (input != null) {
-                properties.load(input);
-            } else {
-                System.err.println("❌ [ConfigUtils] 未找到 application.properties 文件");
-            }
-        } catch (IOException ex) {
-            System.err.println("⚠️ [ConfigUtils] 加载配置失败: " + ex.getMessage());
+        try {
+            FileInputStream in = new FileInputStream("src/main/resources/application.properties");
+            props.load(in);
+            in.close();
+        } catch (IOException e) {
+            System.err.println("⚠️ 加载配置文件失败: " + e.getMessage());
         }
     }
 
     /**
-     * 获取字符串配置项
+     * 获取配置值（默认值为空字符串）
      */
     public static String getProperty(String key) {
-        return properties.getProperty(key);
+        return props.getProperty(key, "");
     }
 
     /**
-     * 获取字符串配置项（含默认值）
+     * 获取配置值（指定默认值）
      */
     public static String getProperty(String key, String defaultValue) {
-        return properties.getProperty(key, defaultValue);
+        return props.getProperty(key, defaultValue);
     }
 
     /**
-     * 获取布尔值配置项
+     * 获取布尔配置（默认 false）
      */
     public static boolean getBoolean(String key, boolean defaultValue) {
-        String value = getProperty(key);
-        return value != null ? Boolean.parseBoolean(value) : defaultValue;
+        String val = getProperty(key);
+        if (val == null || val.isEmpty()) return defaultValue;
+        return val.equalsIgnoreCase("true") || val.equals("1");
     }
 
     /**
-     * 获取整数配置项
+     * 获取整型配置（默认 -1）
      */
     public static int getInt(String key, int defaultValue) {
-        String value = getProperty(key);
         try {
-            return value != null ? Integer.parseInt(value) : defaultValue;
-        } catch (NumberFormatException e) {
+            return Integer.parseInt(getProperty(key));
+        } catch (Exception e) {
             return defaultValue;
         }
+    }
+
+    // ✅ 获取 Token
+    public static String getToken() {
+        return getProperty("api.auth.token", "default_token_123");
+    }
+
+    // ✅ 获取 Cookie 值
+    public static String getCookie() {
+        return getProperty("api.auth.cookie", "sessionId=defaultSession");
+    }
+
+    // ✅ 获取 Basic Auth 用户名
+    public static String getBasicUsername() {
+        return getProperty("api.auth.basic.username", "admin");
+    }
+
+    // ✅ 获取 Basic Auth 密码
+    public static String getBasicPassword() {
+        return getProperty("api.auth.basic.password", "admin");
     }
 }
